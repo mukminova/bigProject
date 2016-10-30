@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.junit.Assert.*;
 
 /**
- * Created by Li on 30.10.16.
+ * тесты модели юзеров
  */
 public class UsersTest {
     private static Logger log = LoggerFactory.getLogger(Users.class);
@@ -22,6 +22,10 @@ public class UsersTest {
         this.user = new Users();
     }
 
+    /**
+     * Тест корректного сохранения пароля
+     * @throws Exception
+     */
     @Test
     public void testSetPassword() throws Exception {
         log.info("This is testSetPassword method");

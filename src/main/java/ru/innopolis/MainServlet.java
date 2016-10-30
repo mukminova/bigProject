@@ -1,14 +1,10 @@
 package ru.innopolis;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
- * Created by Li on 30.10.16.
+ * Родительский сервлет сервлетов, для общих полей и методов
  */
 @WebServlet(name = "MainServlet")
 public abstract class MainServlet extends HttpServlet {
