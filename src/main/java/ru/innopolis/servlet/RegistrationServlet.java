@@ -2,6 +2,8 @@ package ru.innopolis.servlet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.innopolis.dao.UsersDao;
+import ru.innopolis.dao.impl.UsersDaoImpl;
 import ru.innopolis.model.Users;
 
 import javax.servlet.ServletException;
@@ -18,7 +20,7 @@ import java.sql.*;
  */
 @WebServlet(name = "RegistrationServlet")
 public class RegistrationServlet extends MainServlet {
-    private static final String REGISTRATION_REQUEST = "insert into users(name,lname,password,email) values(?,?,?,?)";
+
     private static Logger logger = LoggerFactory.getLogger(RegistrationServlet.class);
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -33,29 +35,20 @@ public class RegistrationServlet extends MainServlet {
         user.setLname(request.getParameter(FIELD_USER_LNAME));
         user.setWithRepeatPassword(request.getParameter(FIELD_USER_PASSWORD), request.getParameter(FIELD_USER_REPEAT_PWD));
 
-        if (user.getPassword() != null && !user.isEmpty()) {
-            getDriverClass();
-            try (Connection connection = DriverManager.getConnection(URL, USER, PWD);
-                 PreparedStatement ps = connection.prepareStatement(REGISTRATION_REQUEST)) {
-                ps.setString(1, user.getName());
-                ps.setString(2, user.getLname());
-                ps.setString(3, user.getPassword());
-                ps.setString(4, user.getEmail());
-                if (ps.executeUpdate() > 0) {
-                    session.setAttribute(FIELD_USER_EMAIL, user.getEmail());
-                    logger.info("You are successfully registered...");
-                    out.println("You are successfully registered...");
-                    request.getRequestDispatcher("index.jsp").include(request, response);
-                }
-            } catch (SQLException e) {
-                logger.warn(e.getMessage());
-                out.println(e.getMessage());
-                e.printStackTrace();
+        UsersDao usersDao = new UsersDaoImpl();
+        try {
+            if (user.getPassword() != null && !user.isEmpty() && usersDao.addUser(user)) {
+                session.setAttribute(FIELD_USER_EMAIL, user.getEmail());
+                logger.info("You are successfully registered...");
+                out.println("You are successfully registered...");
+                request.getRequestDispatcher("index.jsp").include(request, response);
+            } else {
+                logger.info("Incorrect entered data");
+                out.println("Incorrect entered data");
+                request.getRequestDispatcher("registration.jsp").include(request, response);
             }
-        } else {
-            logger.info("Incorrect entered data");
-            out.println("Incorrect entered data");
-            request.getRequestDispatcher("registration.jsp").include(request, response);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
         out.close();
     }

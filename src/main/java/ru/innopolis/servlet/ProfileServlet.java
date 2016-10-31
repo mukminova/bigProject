@@ -2,6 +2,8 @@ package ru.innopolis.servlet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.innopolis.dao.UsersDao;
+import ru.innopolis.dao.impl.UsersDaoImpl;
 import ru.innopolis.model.Users;
 
 import javax.servlet.ServletException;
@@ -18,8 +20,6 @@ import java.sql.*;
  */
 @WebServlet(name = "ProfileServlet")
 public class ProfileServlet extends MainServlet {
-    private static final String UPDATE_PROFILE_REQUEST = "UPDATE users SET name = ?, lname = ?, password = ? where email = ?";
-    private static final String SELECT_PROFILE_REQUEST = "select name, lname, password from users where email = ?";
     private static Logger logger = LoggerFactory.getLogger(ProfileServlet.class);
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -34,29 +34,22 @@ public class ProfileServlet extends MainServlet {
         user.setLname(request.getParameter(FIELD_USER_LNAME));
         user.setWithRepeatPassword(request.getParameter(FIELD_USER_PASSWORD), request.getParameter(FIELD_USER_REPEAT_PWD));
 
-        if (user.getPassword() != null && !user.isEmpty()) {
-            getDriverClass();
-            try (Connection connection = DriverManager.getConnection(URL, USER, PWD);
-                 PreparedStatement ps = connection.prepareStatement(UPDATE_PROFILE_REQUEST)) {
-                ps.setString(1, user.getName());
-                ps.setString(2, user.getLname());
-                ps.setString(3, user.getPassword());
-                ps.setString(4, user.getEmail());
-                if (ps.executeUpdate() > 0) {
-                    logger.info("You are successfully update...");
-                    out.println("You are successfully update...");
-                    request.getRequestDispatcher("index.jsp").include(request, response);
-                }
-            } catch (SQLException e) {
-                logger.warn(e.getMessage());
-                out.println(e.getMessage());
-                e.printStackTrace();
+        UsersDao usersDao = new UsersDaoImpl();
+        try {
+            if (user.getPassword() != null && !user.isEmpty() && usersDao.updateUser(user)) {
+                logger.info("You are successfully update...");
+                out.println("You are successfully update...");
+                request.getRequestDispatcher("index.jsp").include(request, response);
+            } else {
+                logger.info("Incorrect entered data");
+                out.println("Incorrect entered data");
+                request.getRequestDispatcher("profile.jsp").include(request, response);
             }
-        } else {
-            logger.info("Incorrect entered data");
-            out.println("Incorrect entered data");
-            request.getRequestDispatcher("profile.jsp").include(request, response);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
+
+
         out.close();
     }
 
@@ -64,29 +57,21 @@ public class ProfileServlet extends MainServlet {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
-        HttpSession session = request.getSession(false);/*???????????????*/
+        HttpSession session = request.getSession(false);
 
         if (session != null && session.getAttribute(FIELD_USER_EMAIL) != null) {
-            Users user = new Users();
-            user.setEmail((String) session.getAttribute(FIELD_USER_EMAIL));
-            try (Connection connection = DriverManager.getConnection(URL, USER, PWD);
-                 PreparedStatement ps = connection.prepareStatement(SELECT_PROFILE_REQUEST)) {
-                ps.setString(1, user.getEmail());
-                ResultSet rs = ps.executeQuery();
-                if (rs.next()) {
-                    request.setAttribute(FIELD_USER_NAME, rs.getString("name"));
-                    request.setAttribute(FIELD_USER_LNAME, rs.getString("lname"));
-                    request.setAttribute(FIELD_USER_PASSWORD, rs.getString("password"));
-                }
-                rs.close();
-            } catch (SQLException e) {
-                logger.warn(e.getMessage());
-                out.println(e.getMessage());
+            UsersDao usersDao = new UsersDaoImpl();
+            try {
+                Users user = usersDao.getUserByEmail((String) session.getAttribute(FIELD_USER_EMAIL));
+                request.setAttribute(FIELD_USER_NAME, user.getName());
+                request.setAttribute(FIELD_USER_LNAME, user.getLname());
+                request.setAttribute(FIELD_USER_PASSWORD, user.getPassword());
+                logger.info("Hello, " + user.getEmail() + " Welcome to Profile");
+                out.println("Hello, " + user.getEmail() + " Welcome to Profile");
+                request.getRequestDispatcher("profile.jsp").forward(request, response);
+            } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
-            logger.info("Hello, " + user.getEmail() + " Welcome to Profile");
-            out.println("Hello, " + user.getEmail() + " Welcome to Profile");
-            request.getRequestDispatcher("profile.jsp").forward(request, response);
         } else {
             logger.info("Please login first");
             out.println("Please login first");

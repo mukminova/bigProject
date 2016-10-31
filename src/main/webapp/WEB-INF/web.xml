@@ -6,19 +6,19 @@
 
     <servlet>
         <servlet-name>RegistrationServlet</servlet-name>
-        <servlet-class>ru.innopolis.RegistrationServlet</servlet-class>
+        <servlet-class>ru.innopolis.servlet.RegistrationServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>AuthServlet</servlet-name>
-        <servlet-class>ru.innopolis.AuthServlet</servlet-class>
+        <servlet-class>ru.innopolis.servlet.AuthServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>Logout</servlet-name>
-        <servlet-class>ru.innopolis.LogoutServlet</servlet-class>
+        <servlet-class>ru.innopolis.servlet.LogoutServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>Profile</servlet-name>
-        <servlet-class>ru.innopolis.ProfileServlet</servlet-class>
+        <servlet-class>ru.innopolis.servlet.ProfileServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
