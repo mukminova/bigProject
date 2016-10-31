@@ -1,4 +1,4 @@
-package ru.innopolis;
+package ru.innopolis.servlet;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
